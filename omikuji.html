@@ -1,0 +1,208 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400&display=swap" rel="stylesheet">
+
+<div style="text-align:center; margin:1em 0;">
+  <button id="omikujiBtn" onclick="drawOmikuji()">Draw Omikuji</button>
+</div>
+
+<div id="resultContainer" class="result-container">
+  <img id="fortuneImg" src="" alt="" class="fortune-img">
+  <pre id="output" class="fortune-text"></pre>
+</div>
+
+<style>
+body {
+  font-family: 'Noto Serif JP', serif;
+}
+#omikujiBtn {
+  background: #b30000;
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  padding: 12px 24px;
+  color: #ffd700;
+  font-size: 1.2em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+#omikujiBtn:hover { background: #cc0000; }
+#omikujiBtn:active { background: #990000; }
+
+.result-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2em;
+  margin-top: 2.5em;
+  flex-wrap: wrap;
+  text-align: left;
+  min-height: 320px; /* keeps layout stable to prevent jump */
+}
+
+.fortune-img {
+  display: none;
+  max-width: 280px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  visibility: hidden; /* reserve space even before display */
+}
+
+.fortune-text {
+  white-space: pre-wrap;
+  font-size: 1.2em;
+  line-height: 1.5;
+  width: 400px;
+}
+
+/* mobile responsiveness */
+@media (max-width: 600px) {
+  .result-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+    margin-top: 1.2em;
+  }
+
+  .fortune-img {
+    max-width: 90%;
+  }
+
+  .fortune-text {
+    width: auto;        /* no fixed width on small screens */
+    max-width: 90%;
+    text-align: left;
+  }
+}
+</style>
+
+<script>
+const omikujiList = [
+  { name: "Great Blessing (大吉)", prob: 0.10, img: "https://images.weserv.nl/?url=drive.google.com/uc%3Fexport%3Dview%26id%3D1QFX0x5XuHzk_dMRWGvbrwOFpsmieP5q6" },
+  { name: "Middle Blessing (中吉)", prob: 0.15, img: "https://images.weserv.nl/?url=drive.google.com/uc%3Fexport%3Dview%26id%3D1oi19khuoX2AYZ29SvR91hAuoAplh6i_W" },
+  { name: "Small Blessing (小吉)", prob: 0.20, img: "https://images.weserv.nl/?url=drive.google.com/uc%3Fexport%3Dview%26id%3D1rkYODdaAt5x5iZNYzOx_pHTIxjNJtOG9" },
+  { name: "Blessing (吉)", prob: 0.24, img: "https://images.weserv.nl/?url=drive.google.com/uc%3Fexport%3Dview%26id%3D1riZboGZicfokSRTuLnwGuitv1R6fPJlD" },
+  { name: "Half-blessing (半吉)", prob: 0.05, img: "https://images.weserv.nl/?url=drive.google.com/uc%3Fexport%3Dview%26id%3D1SAAR5TmlPrigKwhsq_64bPMWcOsHfYwR" },
+  { name: "Future Blessing (末吉)", prob: 0.10, img: "https://images.weserv.nl/?url=drive.google.com/uc%3Fexport%3Dview%26id%3D1U21eNKAxhHA9mfiYxJJoT9evmkQhWe4u" },
+  { name: "Curse (凶)", prob: 0.10, img: "https://images.weserv.nl/?url=drive.google.com/uc%3Fexport%3Dview%26id%3D1AqiP_6bglbjCfs02_Xb2Ls1XND_g95Om" },
+  { name: "Great Curse (大凶)", prob: 0.05, img: "https://images.weserv.nl/?url=drive.google.com/uc%3Fexport%3Dview%26id%3D1KZDzympQARR0-1luBTMndIU6pWHKjb9y" },
+  { name: "Catastrophe (大惨事)", prob: 0.01, img: "https://images.weserv.nl/?url=drive.google.com/uc%3Fexport%3Dview%26id%3D1QEfD4LClWwWtEERgx8o0bWK_9sbizCnn" }
+];
+
+const categories = {
+  "General": [
+    "An excellent day for new beginnings",
+    "Stay cautious but optimistic",
+    "A calm and steady day",
+    "Small joys await you",
+    "Mild progress; keep your focus",
+    "Better things are coming",
+    "Beware of missteps",
+    "A challenging day—be resilient",
+    "Disaster stalks from afar"
+  ],
+  "Work & Studies": [
+    "Success through effort","Steady gains","Good focus needed","Don’t procrastinate",
+    "Progress will be slow","Delays expected","Mistakes likely","Consider a new approach","One rare slip undoes much"
+  ],
+  "Finances": [
+    "Fortune favors you","Steady inflow","Watch your spending","Moderation is key",
+    "Avoid big purchases","Wait before investing","Be frugal","High risk—avoid speculation","Loss strikes hard"
+  ],
+  "Relationships": [
+    "Strong bonds deepen","Warm connections grow","Good communication helps","Moments of affection",
+    "Keep expectations low","Patience is needed","Misunderstandings ahead","Distance may arise","Expect discord"
+  ],
+  "Health": [
+    "Vital and strong","Feeling well","Take breaks","Eat carefully","Don't neglect rest",
+    "Slight concerns","Fatigue likely","Watch for illness","Misfortune pierces even strength"
+  ]
+};
+
+const luckySymbols = {
+  "Item": ["Bell","Coin","Sakura charm","Lantern","Cat figurine","Bamboo leaf","Money mallet","Sake cup","Koi"],
+  "Direction": ["North","East","South","West","Northeast","Southwest"],
+  "Time": ["Morning","Afternoon","Evening","Late night"]
+};
+
+// new category
+const suggestedActivities = [
+  "Schedule a meeting with your advisor",
+  "Eat Japanese food",
+  "Go home and rest",
+  "Find a change of scenery"
+];
+
+function weightedRandomIndex(list) {
+  const r = Math.random();
+  let cum = 0;
+  for (let i = 0; i < list.length; i++) {
+    cum += list[i].prob;
+    if (r < cum) return i;
+  }
+  return list.length - 1;
+}
+
+function randomChoice(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function drawOmikuji() {
+  const btn = document.getElementById("omikujiBtn");
+  btn.disabled = true;                                 // disable button
+  const idx = weightedRandomIndex(omikujiList);
+  const fortune = omikujiList[idx];
+  const out = document.getElementById("output");
+  const img = document.getElementById("fortuneImg");
+
+  out.textContent = "";
+  img.style.visibility = "visible";
+  img.src = fortune.img;
+  img.alt = fortune.name;
+  img.style.display = "block";
+
+  let delay = 1000;
+
+  // Longer pause before showing "Your Omikuji"
+  delay += 800;
+  setTimeout(() => {
+    out.textContent += `🎴 Your Omikuji: ${fortune.name}\n\n`;
+  }, delay);
+  delay += 1500; // extra pause after
+
+  for (const [cat, arr] of Object.entries(categories)) {
+    setTimeout(() => {
+      out.textContent += `${cat}: ${arr[idx]}\n`;
+    }, delay);
+    delay += 600;
+  }
+
+  // Longer pause before "Lucky Symbols"
+  delay += 800;
+  setTimeout(() => {
+    out.textContent += `\n🍀 Lucky Symbols:\n`;
+  }, delay);
+  delay += 1500; // extra pause after header
+
+  for (const [k, v] of Object.entries(luckySymbols)) {
+    setTimeout(() => {
+      out.textContent += `${k}: ${randomChoice(v)}\n`;
+    }, delay);
+    delay += 600;
+  }
+
+  // Add suggested activity at the end
+  delay += 800;
+  setTimeout(() => {
+    out.textContent += `\n🎌 Suggested Activity:\n`;
+  }, delay);
+  delay += 1000;
+  setTimeout(() => {
+    out.textContent += `${randomChoice(suggestedActivities)}\n`;
+  }, delay);
+
+  setTimeout(() => {
+    btn.disabled = false;
+  }, delay + 500);
+}
+</script>
