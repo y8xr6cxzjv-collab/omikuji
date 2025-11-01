@@ -69,7 +69,12 @@ body {
   }
 
   .fortune-img {
-    max-width: 90%;
+    width: 176px;       /* FIXED matches asset width */
+    max-width: none;    /* ignore any earlier percentage max */
+    flex-shrink: 0;
+    display: block;
+    visibility: hidden; /* you already reveal onload */
+    margin: 0 auto;     /* center while stacked */
   }
 
   .fortune-text {
