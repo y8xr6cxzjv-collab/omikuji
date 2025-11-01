@@ -43,12 +43,13 @@ body {
 
 .fortune-img {
   display: block;
-  max-width: 280px;
-  width: auto;
+  max-width: 280px;      /* keep your old upper bound */
+  width: 100%;           /* fill whatever the flex item’s width is */
+  flex-basis: 176px;     /* anchor the layout width to the image's natural size */
   object-fit: contain;
   border-radius: 8px;
-  flex-shrink: 0;
-  visibility: hidden;   /* start hidden */
+  flex-shrink: 0;        /* never shrink when text appears */
+  visibility: hidden;
 }
 
 .fortune-text {
