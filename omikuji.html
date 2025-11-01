@@ -42,11 +42,13 @@ body {
 }
 
 .fortune-img {
-  display: none;
+  display: block;
   max-width: 280px;
+  width: auto;
+  object-fit: contain;
   border-radius: 8px;
   flex-shrink: 0;
-  visibility: hidden; /* reserve space even before display */
+  visibility: hidden;   /* start hidden */
 }
 
 .fortune-text {
@@ -156,7 +158,17 @@ function drawOmikuji() {
   const img = document.getElementById("fortuneImg");
 
   out.textContent = "";
-  img.style.visibility = "visible";
+  const img = document.getElementById("fortuneImg");
+
+  // hide current image immediately
+  img.style.visibility = "hidden";
+
+  // set up handler to reveal only when fully loaded
+  img.onload = () => {
+    img.style.visibility = "visible";
+  };
+
+  // set the new source (this triggers the load event)
   img.src = fortune.img;
   img.alt = fortune.name;
   img.style.display = "block";
