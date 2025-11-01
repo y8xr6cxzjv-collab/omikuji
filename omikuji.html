@@ -69,8 +69,7 @@ body {
   }
 
   .fortune-img {
-    width: 176px;       /* FIXED matches asset width */
-    max-width: none;    /* ignore any earlier percentage max */
+    width: min(90vw, 400px);
     flex-shrink: 0;
     display: block;
     visibility: hidden; /* you already reveal onload */
