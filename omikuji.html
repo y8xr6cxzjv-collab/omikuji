@@ -8,7 +8,9 @@
 </div>
 
 <div id="resultContainer" class="result-container">
-  <img id="fortuneImg" src="" alt="" class="fortune-img">
+  <div id="fortuneImgWrapper" class="fortune-img-wrapper">
+    <img id="fortuneImg" src="" alt="" class="fortune-img">
+  </div>
   <pre id="output" class="fortune-text"></pre>
 </div>
 
@@ -34,18 +36,21 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 2em;
   margin-top: 2.5em;
-  flex-wrap: wrap;
   text-align: left;
-  min-height: 320px; /* keeps layout stable to prevent jump */
+}
+
+.fortune-img-wrapper {
+  width: min(90vw, 280px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .fortune-img {
   display: block;
-  max-width: 280px;      /* keep your old upper bound */
-  width: 100%;           /* fill whatever the flex item’s width is */
-  flex-basis: 176px;     /* anchor the layout width to the image's natural size */
   object-fit: contain;
   border-radius: 8px;
   flex-shrink: 0;        /* never shrink when text appears */
@@ -63,17 +68,12 @@ body {
 @media (max-width: 640px) {
   .result-container {
     flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
+    align-items: center;
     gap: 1em;
     margin-top: 1.2em;
   }
 
   .fortune-img {
-    width: min(90vw, 400px);
-    flex-shrink: 0;
-    display: block;
-    visibility: hidden; /* you already reveal onload */
     margin: 0 auto;     /* center while stacked */
   }
 
@@ -111,7 +111,7 @@ const categories = {
   ],
   "Work & Studies": [
     "Success through effort","Steady gains","Good focus needed","Don’t procrastinate",
-    "Progress will be slow","Delays expected","Mistakes likely","Consider a new approach","One rare slip undoes much"
+    "Progress will be slow","Delays expected","Mistakes likely","Consider a new approach","One slip undoes much"
   ],
   "Finances": [
     "Fortune favors you","Steady inflow","Watch your spending","Moderation is key",
@@ -123,7 +123,7 @@ const categories = {
   ],
   "Health": [
     "Vital and strong","Feeling well","Take breaks","Eat carefully","Don't neglect rest",
-    "Slight concerns","Fatigue likely","Watch for illness","Misfortune pierces even strength"
+    "Slight concerns","Fatigue likely","Watch for illness","Misfortune waylays strength"
   ]
 };
 
@@ -165,18 +165,24 @@ function drawOmikuji() {
 
   out.textContent = "";
 
-  // hide current image immediately
-  img.style.visibility = "hidden";
+// hide current image immediately
+img.style.visibility = "hidden";
 
-  // set up handler to reveal only when fully loaded
-  img.onload = () => {
-    img.style.visibility = "visible";
-  };
+// reset wrapper height so we don't momentarily keep the old image's height
+const wrapper = document.getElementById("fortuneImgWrapper");
+wrapper.style.height = "";
 
-  // set the new source (this triggers the load event)
-  img.src = fortune.img;
-  img.alt = fortune.name;
-  img.style.display = "block";
+// set up handler to size wrapper and reveal image only when fully loaded
+img.onload = () => {
+  const scale = img.clientWidth / img.naturalWidth;
+  const renderedHeight = img.naturalHeight * scale;
+  wrapper.style.height = `${renderedHeight}px`;
+  img.style.visibility = "visible";
+};
+
+// set the new source (this triggers the load event)
+img.src = fortune.img;
+img.alt = fortune.name;
 
   let delay = 1000;
 
