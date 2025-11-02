@@ -43,8 +43,8 @@ body {
 }
 
 .fortune-img-wrapper {
-  width: 240px;
-  max-width:100%;
+  width: 180px;
+  max-width: 100%;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -52,6 +52,8 @@ body {
 
 .fortune-img {
   display: block;
+  width: 100%;               /* fills wrapper exactly */
+  height: auto;              /* keeps aspect ratio */
   object-fit: contain;
   border-radius: 8px;
   flex-shrink: 0;        /* never shrink when text appears */
@@ -75,7 +77,7 @@ body {
   }
 
   .fortune-img-wrapper {
-    width: min(90vw, 240px);
+    width: min(90vw, 180px);
   }
 
   .fortune-img {
